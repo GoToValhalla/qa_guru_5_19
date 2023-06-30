@@ -1,81 +1,146 @@
 import requests
-from datetime import datetime
+
+url = 'https://reqres.in/api/'
 
 
-def test_requested_page_number():
-    page = 2
-    response = requests.get('https://reqres.in/api/users', params={'page': page})
+def test_list_users():
+    response = requests.get(f'{url}users?page=1')
+    get_json = response.json()
 
-    assert response.status_code == 200
-    assert response.json()['page'] == page
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['per_page'] == 6
+    assert get_json['total'] == 12
 
 
-def test_users_list_default_length():
-    default_users_count = 6
+def test_single_user():
+    response = requests.get(f'{url}users/2')
+    get_json = response.json()
 
-    response = requests.get('https://reqres.in/api/users')
-
-    assert len(response.json()['data']) == default_users_count
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['data']['id'] == 2
+    assert get_json['data']['email'] == 'janet.weaver@reqres.in'
 
 
 def test_single_user_not_found():
-    response = requests.get('https://reqres.in/api/users/23')
+    response = requests.get(f'{url}users/23')
 
-    assert response.status_code == 404
-    assert response.text == '{}'
-
-
-def test_create_user():
-    name = "jane"
-    job = "job"
-
-    response = requests.post(
-        url='https://reqres.in/api/users',
-        json={
-            "name": name,
-            "job": job}
-    )
-
-    assert response.status_code == 201
-    assert response.json()['name'] == name
+    assert response.status_code == 404, f'Ожидаемый статус код 404. Пришедший статус код {response.status_code}'
 
 
-def test_delete_user_returns_204():
-    response = requests.delete(url='https://reqres.in/api/users/2')
+def test_list_resource():
+    response = requests.get(f'{url}unknown')
+    get_json = response.json()
 
-    assert response.status_code == 204
-    assert response.text == ''
-
-
-def test_login_successful_user():
-    email = "eve.holt@reqres.in"
-    password = "cityslicka"
-    token = "QpwL5tke4Pnpja7X4"
-
-    response = requests.post(
-        url='https://reqres.in/api/login',
-        json={
-            "email": email,
-            "password": password}
-    )
-
-    assert response.status_code == 200
-    assert response.json()['token'] == token
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['per_page'] == 6
+    assert get_json['total'] == 12
 
 
-def test_update_user():
-    name = "morpheus"
-    job = "zion resident"
-    updatedAt = datetime.now()
+def test_single_resource():
+    response = requests.get(f'{url}unknown/2')
+    get_json = response.json()
 
-    response = requests.put(
-        url='https://reqres.in/api/users/2',
-        json={
-            "name": name,
-            "job": job}
-    )
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['data']['id'] == 2
+    assert get_json['data']['name'] == 'fuchsia rose'
+    assert get_json['data']['year'] == 2001
 
-    print(datetime.now())
-    assert response.status_code == 200
-    assert response.json()['name'] == name
-    # assert response.json()['updatedAt'] == datetime
+
+def test_single_resource_not_found():
+    response = requests.get(f'{url}unknown/23')
+
+    assert response.status_code == 404, f'Ожидаемый статус код 404. Пришедший статус код {response.status_code}'
+
+
+def test_create():
+    payload = {"name": "Kristina",
+               "job": "QA"}
+    response = requests.post(f'{url}users', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 201, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
+    assert get_json['name'] == 'Kristina'
+    assert get_json['job'] == 'QA'
+
+    id = get_json['id']
+    return id
+
+
+def test_update_put():
+    id = test_create()
+    payload = {"name": "Kristina",
+               "job": "AQA"}
+    response = requests.put(f'{url}users/{id}', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 200, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
+    assert get_json['name'] == 'Kristina'
+    assert get_json['job'] == 'AQA'
+
+
+def test_update_putch():
+    id = test_create()
+    payload = {"name": "Kristina",
+               "job": "AQA"}
+    response = requests.patch(f'{url}users/{id}', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 200, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
+    assert get_json['name'] == 'Kristina'
+    assert get_json['job'] == 'AQA'
+
+
+def test_delete():
+    id = test_create()
+    response = requests.delete(f'{url}users/{id}')
+
+    assert response.status_code == 204, f'Ожидаемый статус код 204. Пришедший статус код {response.status_code}'
+
+
+def test_register_successfull():
+    payload = {"email": "eve.holt@reqres.in",
+               "password": "pistol"}
+    response = requests.post(f'{url}register', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['id'] == 4
+    assert get_json['token'] == 'QpwL5tke4Pnpja7X4'
+
+
+def test_register_unsuccessfull():
+    payload = {"email": "sydney@fife"}
+    response = requests.post(f'{url}register', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 400, f'Ожидаемый статус код 400. Пришедший статус код {response.status_code}'
+    assert get_json['error'] == 'Missing password'
+
+
+def test_login_successfull():
+    payload = {"email": "eve.holt@reqres.in",
+               "password": "cityslicka"}
+    response = requests.post(f'{url}login', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['token'] == 'QpwL5tke4Pnpja7X4'
+
+
+def test_login_unsuccessfull():
+    payload = {"email": "peter@klaven"}
+    response = requests.post(f'{url}login', json=payload)
+    get_json = response.json()
+
+    assert response.status_code == 400, f'Ожидаемый статус код 400. Пришедший статус код {response.status_code}'
+    assert get_json['error'] == 'Missing password'
+
+
+def test_delayed_response():
+    response = requests.get(f'{url}users?delay=3')
+    get_json = response.json()
+
+    assert response.status_code == 200, f'Ожидаемый статус код 200. Пришедший статус код {response.status_code}'
+    assert get_json['per_page'] == 6
+    assert get_json['total'] == 12
+
