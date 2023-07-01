@@ -53,14 +53,14 @@ def test_single_resource_not_found():
 
 
 def test_create():
-    payload = {"name": "Kristina",
-               "job": "QA"}
+    payload = {"name": "Ivan",
+               "job": "QQ"}
     response = requests.post(f'{url}users', json=payload)
     get_json = response.json()
 
     assert response.status_code == 201, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
-    assert get_json['name'] == 'Kristina'
-    assert get_json['job'] == 'QA'
+    assert get_json['name'] == 'Ivan'
+    assert get_json['job'] == 'QQ'
 
     id = get_json['id']
     return id
@@ -68,26 +68,26 @@ def test_create():
 
 def test_update_put():
     id = test_create()
-    payload = {"name": "Kristina",
-               "job": "AQA"}
+    payload = {"name": "Ivan",
+               "job": "WWW"}
     response = requests.put(f'{url}users/{id}', json=payload)
     get_json = response.json()
 
     assert response.status_code == 200, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
-    assert get_json['name'] == 'Kristina'
-    assert get_json['job'] == 'AQA'
+    assert get_json['name'] == 'Ivan'
+    assert get_json['job'] == 'WWW'
 
 
 def test_update_putch():
     id = test_create()
-    payload = {"name": "Kristina",
-               "job": "AQA"}
+    payload = {"name": "Ivan",
+               "job": "AAA"}
     response = requests.patch(f'{url}users/{id}', json=payload)
     get_json = response.json()
 
     assert response.status_code == 200, f'Ожидаемый статус код 201. Пришедший статус код {response.status_code}'
-    assert get_json['name'] == 'Kristina'
-    assert get_json['job'] == 'AQA'
+    assert get_json['name'] == 'Ivan'
+    assert get_json['job'] == 'AAA'
 
 
 def test_delete():
